@@ -20,12 +20,10 @@ red = (155, 0, 0)
 sky = (0, 0, 0)
 clock = pygame.time.Clock()
 FPS = 21
-maxspeed = 15
+maxspeed = 20
 
-#screen = pygame.display.set_mode(size)
-screen = pygame.display.set_mode(size,DOUBLEBUF | FULLSCREEN)
-
-
+screen = pygame.display.set_mode(size)
+#screen = pygame.display.set_mode(size,DOUBLEBUF | FULLSCREEN)
 
 def cpumove(cpu, target):
     if target.rect.left < cpu.rect.left:
@@ -241,18 +239,18 @@ class player(pygame.sprite.Sprite):
 
     def checkbounds(self):
         if self.rect.left < 0:
-            self.rect.left = 0
-            self.movement[0] = 0
-            self.speed = 0
+            self.rect.right =width 
+            #self.movement[0] = 0
+            #self.speed = 0
         if self.rect.right > width:
-            self.rect.right = width
-            self.movement[0] = 0
-            self.speed = 0
+            self.rect.left = 0
+            #self.movement[0] = 0
+            #self.speed = 0
 
     def update(self):
         self.rect = self.rect.move(self.movement)
         self.shootdelay += 1
-        if self.fire == 1 and self.shootdelay%3 == 1:
+        if self.fire == 1 and self.shootdelay%2 == 1:
             self.shoot()
 
         if self.health > 200:
@@ -299,6 +297,8 @@ class boss(pygame.sprite.Sprite):
         self.shot = False
         self.isautopilot = False
         self.reloadtime = 0
+        self.last = pygame.time.get_ticks()
+        self.cooldown = 500
 
     def checkbounds(self):
         if self.rect.left < 0:
@@ -315,9 +315,10 @@ class boss(pygame.sprite.Sprite):
         moveplayer(self)
 
         self.rect = self.rect.move(self.movement)
-
-        if self.fire == 1 and self.reloadtime == 0:
+        now = pygame.time.get_ticks()
+        if self.fire == 1 and self.reloadtime == 0 and now-self.last>=self.cooldown:
             self.shoot(self.bulletformation, self.bulletspeed)
+            self.last=now
 
         if self.reloadtime > 0:
             self.reloadtime -= 1
@@ -386,6 +387,8 @@ class boss(pygame.sprite.Sprite):
 class enemy(pygame.sprite.Sprite):
 
     def __init__(self, n=0):
+        self.last=pygame.time.get_ticks()
+        self.cooldown = 1500
         pygame.sprite.Sprite.__init__(self, self.containers)
         sheet = pygame.image.load('Sprites/enemy_sheet1.png')
         self.images = []
@@ -436,6 +439,8 @@ class enemy(pygame.sprite.Sprite):
 
         self.shot = False
 
+        
+
     def checkbounds(self):
         if self.rect.left < 0:
             self.rect.left = 0
@@ -452,10 +457,10 @@ class enemy(pygame.sprite.Sprite):
         moveplayer(self)
         self.autopilot()
         self.rect = self.rect.move(self.movement)
-
-        if self.fire == 1:
+        now = pygame.time.get_ticks()
+        if self.fire == 1 and now-self.last>=self.cooldown:
             self.shoot()
-
+            self.last=now
         if self.health <= 0:
             (x, y) = self.rect.center
             if pygame.mixer.get_init():
@@ -496,6 +501,8 @@ class enemydrone(pygame.sprite.Sprite):
         self.explosion_sound = \
             pygame.mixer.Sound('Sprites/explosion.wav')
         self.explosion_sound.set_volume(0.1)
+        self.last = pygame.time.get_ticks()
+        self.cooldown = 2000
 
     def checkbounds(self):
         if self.rect.left < 0:
@@ -511,9 +518,10 @@ class enemydrone(pygame.sprite.Sprite):
         self.checkbounds()
         self.autopilot()
         self.rect = self.rect.move(self.movement)
-
-        if self.fire == 1 and self.waitTime % 10 == 1:
+        now=pygame.time.get_ticks()
+        if self.fire == 1 and self.waitTime % 10 == 1 and now - self.last >=self.cooldown :
             self.shoot()
+            self.last=now
 
         if self.health <= 0:
             (x, y) = self.rect.center
@@ -558,6 +566,8 @@ class enemysaucer(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, self.containers)
         sheet = pygame.image.load('Sprites/enemy_saucer1.png')
         self.images = []
+        self.last=pygame.time.get_ticks()
+        self.cooldown= 1500
 
         for i in range(0, 672, 96):
             rect = pygame.Rect((i, 0, 96, 96))
@@ -569,6 +579,7 @@ class enemysaucer(pygame.sprite.Sprite):
             image.blit(sheet, (0, 0), rect)
             image = pygame.transform.scale(image, (48, 48))
             self.images.append(image)
+ 
 
         self.image = self.images[0]
         self.index = 0
@@ -583,6 +594,7 @@ class enemysaucer(pygame.sprite.Sprite):
         self.explosion_sound = \
             pygame.mixer.Sound('Sprites/explosion.wav')
         self.explosion_sound.set_volume(0.1)
+       
 
     def checkbounds(self):
         if self.rect.left < 0:
@@ -598,9 +610,10 @@ class enemysaucer(pygame.sprite.Sprite):
         self.checkbounds()
         self.autopilot()
         self.rect = self.rect.move(self.movement)
-
-        if self.fire == 1 and self.waitTime % 10 == 1:
+        now = pygame.time.get_ticks()
+        if self.fire == 1 and self.waitTime % 10 == 1 and now-self.last>=self.cooldown:
             self.shoot()
+            self.last=now
 
         if self.health <= 0:
             (x, y) = self.rect.center
@@ -653,6 +666,8 @@ class enemystation(pygame.sprite.Sprite):
             pygame.mixer.Sound('Sprites/explosion.wav')
         self.explosion_sound.set_volume(0.1)
         self.rotation = 10
+        self.last=pygame.time.get_ticks()
+        self.cooldown=1800
 
     def checkbounds(self):
         if self.rect.left < 0:
@@ -668,9 +683,10 @@ class enemystation(pygame.sprite.Sprite):
         self.checkbounds()
         self.autopilot()
         self.rect = self.rect.move(self.movement)
-
-        if self.fire == 1 and self.waitTime % 10 == 1:
+        now=pygame.time.get_ticks()
+        if self.fire == 1 and self.waitTime % 10 == 1 and now-self.last >= self.cooldown:
             self.shoot()
+            self.last=now
 
         if self.health <= 0:
             (x, y) = self.rect.center
@@ -756,6 +772,55 @@ class healthpack(pygame.sprite.Sprite):
             self.movement[0] = 3
 
         self.movement[1] = 5
+
+class reversepack(pygame.sprite.Sprite):
+
+    def __init__(
+        self,
+        x,
+        y,
+        health,
+        ):
+
+        pygame.sprite.Sprite.__init__(self, self.containers)
+        self.health = health
+        (self.image, self.rect) = load_image('reversepack.png', 60, 60,
+                -1)
+        self.rect.left = x
+        self.rect.top = y
+        self.movement = [3, 0]
+        self.maxleft = self.rect.left - 20
+        self.maxright = self.rect.right + 20
+
+    def checkbounds(self):
+        if self.rect.left < 0:
+            self.rect.left = 0
+            self.movement[0] = 0
+            self.speed = 0
+        if self.rect.right > width:
+            self.rect.right = width
+            self.movement[0] = 0
+            self.speed = 0
+
+    def update(self):
+        self.checkbounds()
+        self.autopilot()
+        self.rect = self.rect.move(self.movement)
+
+        if self.health <= 0 or self.rect.top > height:
+            self.kill()
+
+    def drawplayer(self):
+        screen.blit(self.image, self.rect)
+
+    def autopilot(self):
+        if self.rect.right > self.maxright:
+            self.movement[0] = -3
+        elif self.rect.left < self.maxleft:
+            self.movement[0] = 3
+
+        self.movement[1] = 5
+
 
 
 class bullet(pygame.sprite.Sprite):
@@ -864,7 +929,7 @@ def main():
 
     wavecounter = 0
     wave = 0
-
+    reverse=0
     starfield1 = stars(1,white,50,5)
     starfield2 = stars(1,(150,150,150),75,3)
     starfield3 = stars(1,(75,75,75),200,1)
@@ -878,6 +943,7 @@ def main():
     saucers = pygame.sprite.Group()
     station = pygame.sprite.Group()
     healthpacks = pygame.sprite.Group()
+    reversepacks = pygame.sprite.Group()
 
     bullet.containers = bullets
     enemybullet.containers = enemybullets
@@ -887,6 +953,7 @@ def main():
     enemysaucer.containers = saucers
     enemystation.containers = station
     healthpack.containers = healthpacks
+    reversepack.containers = reversepacks
 
     user = player()
     pygame.display.set_caption('PyGalaxian')
@@ -959,13 +1026,20 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     user.trigger = 1
                     if event.key == pygame.K_LEFT:
-                        user.speed = -2
+                        if reverse % 2 == 0:
+                            user.speed = -(2+reverse)
+                        else:
+                            user.speed =(2+reverse)
                     elif event.key == pygame.K_RIGHT:
-                        user.speed = 2
+                        if reverse % 2 == 0:
+                            user.speed = (2+reverse)
+                        else:
+                            user.speed = - (2+reverse)
                     elif event.key == pygame.K_UP:
                         user.fire = 1
                     elif event.key == pygame.K_ESCAPE:
-                    	quit()
+                        pygame.quit()
+                        quit()
 
                 if event.type == pygame.KEYUP:
                     if event.key == pygame.K_LEFT or event.key \
@@ -979,6 +1053,9 @@ def main():
                 and len(healthpacks) < 1:
                 healthpack(random.randrange(0, width - 50), 0, 10)
 
+            if wavecounter % 200 == 199 and random.randrange(0,2) == 1 and len(reversepacks)<1:
+                reversepack(random.randrange(0 , width - 50), 0 , 10)
+                
             if random.randrange(0, 8) == 1 and len(enemies) < 10 \
                 and (wave == 0 or wave == 5 or wave == 6 or wave == 9):
                 enemy(random.randrange(0, 4))
@@ -1082,7 +1159,13 @@ def main():
                 if pygame.sprite.collide_mask(user, health_pack):
                     user.health += health_pack.health
                     health_pack.health -= health_pack.health
-
+                    
+            for reverse_pack in reversepacks:
+                if pygame.sprite.collide_mask(user, reverse_pack):
+                    reverse += 1
+                    user.score+=50
+                    reverse_pack.health -= reverse_pack.health
+                    
             if user.health <= 0:
                 gameOverScreen = True
                 stageStart = False
@@ -1112,7 +1195,8 @@ def main():
             saucers.update()
             station.update()
             healthpacks.update()
-
+            reversepacks.update()
+            
             bullets.draw(screen)
             enemybullets.draw(screen)
             enemies.draw(screen)
@@ -1121,9 +1205,9 @@ def main():
             saucers.draw(screen)
             station.draw(screen)
             healthpacks.draw(screen)
-
+            reversepacks.draw(screen)
+            
             wave = storyboard(wavecounter)
-
             wavecounter += 1
 
             pygame.display.update()
@@ -1150,13 +1234,20 @@ def main():
                 if event.type == pygame.KEYDOWN:
                     user.trigger = 1
                     if event.key == pygame.K_LEFT:
-                        user.speed = -2
+                        if reverse % 2 == 0:
+                            user.speed = -(2+reverse)
+                        else:
+                            user.speed =(2+reverse)
                     elif event.key == pygame.K_RIGHT:
-                        user.speed = 2
+                        if reverse % 2 == 0:
+                            user.speed = (2+reverse)
+                        else:
+                            user.speed = - (2+reverse)
                     elif event.key == pygame.K_UP:
                         user.fire = 1
                     elif event.key == pygame.K_ESCAPE:
-                    	quit()
+                        pygame.quit()
+                        quit()
 
 
                 if event.type == pygame.KEYUP:
@@ -1286,7 +1377,9 @@ def main():
             starfield1.drawstars()
             starfield2.drawstars()
             starfield3.drawstars()
-
+            
+                        
+            # screen of game is end
             if user.won == False:
                 displaytext('Game Over', 26, width / 2 - 30, height
                             / 2, white)
@@ -1300,6 +1393,8 @@ def main():
                         + 43, white)
             displaytext('Press Enter to exit...', 14, width / 2 - 30,
                         height / 2 + 90, white)
+
+            
             pygame.display.update()
             clock.tick(FPS)
 
