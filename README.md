@@ -46,3 +46,12 @@ Email: shivam.shekhar.ece14@itbhu.ac.in
 * http://www.pygame.org/docs
 * https://github.com/TheLycaeum/pygame 
 
+##########################################################################
+changed by :
+Gimsoogeun
+change point:
+1. enemys have a delay when after shoot!!
+2. you can warp wall!!
+(this mean if you bound one side(left or right side) then you move other side)
+3. appand a new item!!
+(reversepack. if you got it then you are controleris reverse and speed up!!)
